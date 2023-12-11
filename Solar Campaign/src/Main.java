@@ -11,6 +11,8 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -43,6 +45,25 @@ public class Main extends Application {
 
         root.getChildren().addAll(background, gameMenu);
 
+        scene.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                if (!gameMenu.isVisible()) {
+                    FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
+                    ft.setFromValue(0);
+                    ft.setToValue(1);
+                    gameMenu.setVisible(true);
+
+                    ft.play();
+                } else {
+                    FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
+                    ft.setFromValue(0);
+                    ft.setToValue(1);
+                    ft.setOnFinished(evt -> gameMenu.setVisible(false));
+                    ft.play();
+                }
+            }
+        });
+
 
         Mainstage.setTitle("Solar Campaign");
         Mainstage.setScene(scene);
@@ -54,17 +75,17 @@ public class Main extends Application {
     public static class GameMenu extends Parent {
 
         public GameMenu() {
-            VBox menu0 = new VBox();
-            VBox menu1 = new VBox();
+            HBox menu0 = new HBox(100);
+            HBox menu1 = new HBox(100);
 
 
             menu0.setTranslateX(40);
             menu0.setTranslateY(280);
-            menu1.setTranslateX(280);
-            menu1.setTranslateY(40);
+            menu1.setTranslateX(40);
+            menu1.setTranslateY(280);
 
 
-            final int offset = 400;
+            final int offset = 800;
             menu1.setTranslateX(offset);
 
 
@@ -95,15 +116,11 @@ public class Main extends Application {
 
                 tt.setOnFinished(evt -> getChildren().remove(menu0));
             });
-            btnOptions.setTranslateX(390);
-            btnOptions.setTranslateY(-100);
 
             MenuButton btnExit = new MenuButton("EXIT");
             btnExit.setOnMouseClicked(event ->
                     System.exit(0));
 
-            btnExit.setTranslateX(770);
-            btnExit.setTranslateY(-200);
 
             MenuButton btnBack = new MenuButton("BACK");
             btnBack.setOnMouseClicked(event ->
@@ -125,15 +142,13 @@ public class Main extends Application {
 
 
             });
-            btnBack.setTranslateY(240);
+
 
             MenuButton btnScaling = new MenuButton("SCALING");
-            btnScaling.setTranslateY(140);
-            btnScaling.setTranslateX(390);
+
 
             MenuButton btnSpecials = new MenuButton("SPECIALS");
-            btnSpecials.setTranslateX(770);
-            btnSpecials.setTranslateY(40);
+
 
 
 
