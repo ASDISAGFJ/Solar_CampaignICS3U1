@@ -45,19 +45,26 @@ public class Main extends Application {
         background.setX(0); background.setY(0);
         background.setFitWidth(1200); background.setFitHeight(600);
 
-        Image Level1 = new Image("Images/Level1.jpg");
 
-        root.getChildren().addAll(background, gameMenu);
-        root.getChildren().add(player);
+        Image Level1 = new Image("Images/Level1.jpg");// level 1 background Image
 
+        root.getChildren().addAll(background, gameMenu);//adds the background and the menu
+        root.getChildren().add(player);//adds the player, makes it overlap the background 
+
+
+        //the keyboard inputs
         scene.setOnKeyPressed(keyEvent -> {
             KeyCode keyCode = keyEvent.getCode();
 
+
+            //adds the player movemnet
             player.handleKeyPress(keyCode);
             player.handleKeyRelease(keyCode);
 
 
+            //adds a way to acces the menu
             if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                //if the menu isn't visible, pauses any movement, and makes then invisible
                 if (!gameMenu.isVisible()) {
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
@@ -69,6 +76,7 @@ public class Main extends Application {
 
                     ft.play();
                 } else {
+                    //if the menu is visible, then starts the tasks again, and makes the menu invisible
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
                     ft.setToValue(1);
@@ -81,6 +89,8 @@ public class Main extends Application {
             }
         });
 
+
+        //gets the location of the player
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
@@ -92,6 +102,7 @@ public class Main extends Application {
 
 
 
+        //gives the title, sets the scene, make resizing false, and show the application
         Mainstage.setTitle("Solar Campaign");
         Mainstage.setScene(scene);
         Mainstage.setResizable(false);
