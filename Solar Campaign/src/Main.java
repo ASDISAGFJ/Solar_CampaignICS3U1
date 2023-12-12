@@ -113,21 +113,26 @@ public class Main extends Application {
     public static class GameMenu extends Parent {
 
         public GameMenu() {
+            //resizes every new objects horizontally
             HBox menu0 = new HBox(100);
             HBox menu1 = new HBox(100);
 
 
+
+            //the default location for the first object
             menu0.setTranslateX(40);
             menu0.setTranslateY(280);
             menu1.setTranslateX(40);
             menu1.setTranslateY(280);
 
 
+            //offseet for different menus
             final int offset = 800;
             menu1.setTranslateX(offset);
 
 
 
+            //the start button, sets the menu to be invisible
             MenuButton btnResume = new MenuButton("START");
             btnResume.setOnMouseClicked(event ->
             {
@@ -140,6 +145,7 @@ public class Main extends Application {
 
             });
 
+            //changes to menu1 
             MenuButton btnOptions = new MenuButton("OPTIONS");
             btnOptions.setOnMouseClicked(event ->
             {
@@ -155,11 +161,13 @@ public class Main extends Application {
                 tt.setOnFinished(evt -> getChildren().remove(menu0));
             });
 
+            //exits the program
             MenuButton btnExit = new MenuButton("EXIT");
             btnExit.setOnMouseClicked(event ->
                     System.exit(0));
 
 
+            //changes to menu0
             MenuButton btnBack = new MenuButton("BACK");
             btnBack.setOnMouseClicked(event ->
             {
@@ -182,18 +190,22 @@ public class Main extends Application {
             });
 
 
+            //TBA
             MenuButton btnScaling = new MenuButton("SCALING");
 
 
+            //TBA
             MenuButton btnSpecials = new MenuButton("SPECIALS");
 
 
 
 
+            //adds the buttons to their percpective menu
             menu0.getChildren().addAll(btnResume, btnOptions, btnExit);
             menu1.getChildren().addAll(btnBack, btnScaling, btnSpecials);
 
 
+            //background hue
             Rectangle bg = new Rectangle(1200, 900);
             bg.setFill(Color.PURPLE);
             bg.setOpacity(0.3);
@@ -202,10 +214,14 @@ public class Main extends Application {
 
         }
     }
+    //the buttons
     private static class MenuButton extends StackPane {
+        
         private final Text text;
 
+    
         public MenuButton(String name) {
+            //sets the button name as the perimeter, sets the font, and adds the rectangle for the button
             text = new Text(name);
             text.setFont(text.getFont().font(60));
             Rectangle bg = new Rectangle(300, 100);
@@ -213,6 +229,7 @@ public class Main extends Application {
             bg.setFill(Color.PURPLE);
 
 
+            //creates a blur effect, makes the text colour white, slight rotate, and adds the text
             bg.setEffect(new GaussianBlur(3.5));
             text.setFill(Color.WHITE);
             setRotate(-0.5);
@@ -220,6 +237,7 @@ public class Main extends Application {
             getChildren().addAll(bg, text);
 
 
+            //changes the button when mouse enters
             setOnMouseEntered(event ->
             {
                 bg.setTranslateX(10);
@@ -229,6 +247,7 @@ public class Main extends Application {
             });
 
 
+            //changes back after exiting
             setOnMouseExited(event ->
             {
                 bg.setTranslateX(0);
@@ -237,11 +256,11 @@ public class Main extends Application {
                 text.setFill(Color.WHITE);
             });
 
-
+            //create a glow effect for the buttons 
             DropShadow drop = new DropShadow(50, Color.WHITE);
             drop.setInput(new Glow());
 
-
+            //makes it so that the glow only happens when the mouse is on the button
             setOnMousePressed(event -> setEffect(drop));
             setOnMouseReleased(event -> setEffect(null));
         }
