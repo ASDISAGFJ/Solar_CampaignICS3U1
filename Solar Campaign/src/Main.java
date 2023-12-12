@@ -1,3 +1,4 @@
+import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -14,7 +15,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -33,6 +33,9 @@ public class Main extends Application {
         Group root = new Group();
         Scene scene = new Scene(root, 1200, 600);
 
+        Player  player= new Player();
+
+
 
 
         gameMenu = new GameMenu();
@@ -43,26 +46,51 @@ public class Main extends Application {
         background.setX(0); background.setY(0);
         background.setFitWidth(1200); background.setFitHeight(600);
 
+        Image Level1 = new Image("Images/Level1.jpg");
+
         root.getChildren().addAll(background, gameMenu);
+        root.getChildren().add(player);
 
         scene.setOnKeyPressed(keyEvent -> {
+            KeyCode keyCode = keyEvent.getCode();
+
+            player.handleKeyPress(keyCode);
+            player.handleKeyRelease(keyCode);
+
+
             if (keyEvent.getCode() == KeyCode.ESCAPE) {
                 if (!gameMenu.isVisible()) {
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
                     ft.setToValue(1);
+                    player.stop();
+                    player.setVisible(false);
                     gameMenu.setVisible(true);
+                    background.setImage(TitleScreen);
 
                     ft.play();
                 } else {
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
                     ft.setToValue(1);
-                    ft.setOnFinished(evt -> gameMenu.setVisible(false));
+                    player.start();
+                    gameMenu.setVisible(false);
+                    player.setVisible(true);
+                    background.setImage(Level1);
                     ft.play();
                 }
             }
         });
+
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                player.update();
+            }
+        };
+        timer.start();
+
+
 
 
         Mainstage.setTitle("Solar Campaign");
