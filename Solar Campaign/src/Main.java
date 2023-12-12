@@ -64,7 +64,7 @@ public class Main extends Application {
 
             //adds a way to acces the menu
             if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                //if the menu isn't visible, pauses any movement, and makes then invisible
+                //if the menu isn't visible, pauses any movement, sets the menu as visible, and makes objects invisible
                 if (!gameMenu.isVisible()) {
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
