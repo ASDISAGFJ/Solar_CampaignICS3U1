@@ -21,18 +21,21 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.File;
 
 
 public class Main extends Application {
 
-    private GameMenu gameMenu;
+    private GameMenu gameMenu; //sets up the gameMenu for the main class
 
     @Override
     public void start(Stage Mainstage){
         Group root = new Group();
         Scene scene = new Scene(root, 1200, 600);
 
-        Player  player= new Player();
+        Player  player= new Player();//sets up the player to be used
+        player.setVisible(false);
+        player.stop();
 
 
 
@@ -45,64 +48,72 @@ public class Main extends Application {
         background.setX(0); background.setY(0);
         background.setFitWidth(1200); background.setFitHeight(600);
 
+        Image Level1 = new Image("Images/Level1.jpg");// the background for the first level
 
-        Image Level1 = new Image("Images/Level1.jpg");// level 1 background Image
+        //adds the player and the background, the player is added later to overlap the background
+        root.getChildren().addAll(background, gameMenu);
 
-        root.getChildren().addAll(background, gameMenu);//adds the background and the menu
-        root.getChildren().add(player);//adds the player, makes it overlap the background 
+        //changes the background, the player.setVisible makes the player overlap with the level
+        AnimationTimer setBackground = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (!gameMenu.isVisible()){
+                    background.setImage(Level1);
+                    player.setVisible(true);
 
+                }else {
+                    background.setImage(TitleScreen);
+                    player.setVisible(false);
 
-        //the keyboard inputs
+                }
+            }
+        };
+        setBackground.start();
+
+        //sets up the key inputs, which includes the player movement, and the menu button
         scene.setOnKeyPressed(keyEvent -> {
             KeyCode keyCode = keyEvent.getCode();
 
-
-            //adds the player movemnet
+            //player movement
             player.handleKeyPress(keyCode);
             player.handleKeyRelease(keyCode);
 
-
-            //adds a way to acces the menu
+            //Menu button
             if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                //if the menu isn't visible, pauses any movement, sets the menu as visible, and makes objects invisible
                 if (!gameMenu.isVisible()) {
+                    //creates a fade transition and makes the players movement and visibily to none
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
                     ft.setToValue(1);
                     player.stop();
                     player.setVisible(false);
                     gameMenu.setVisible(true);
-                    background.setImage(TitleScreen);
 
                     ft.play();
                 } else {
-                    //if the menu is visible, then starts the tasks again, and makes the menu invisible
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
                     ft.setFromValue(0);
                     ft.setToValue(1);
                     player.start();
                     gameMenu.setVisible(false);
                     player.setVisible(true);
-                    background.setImage(Level1);
                     ft.play();
                 }
             }
         });
 
 
-        //gets the location of the player
-        AnimationTimer timer = new AnimationTimer() {
+        //updates the player location
+        AnimationTimer PlayerTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 player.update();
             }
         };
-        timer.start();
+        PlayerTimer.start();
 
+        root.getChildren().add(player);
 
-
-
-        //gives the title, sets the scene, make resizing false, and show the application
         Mainstage.setTitle("Solar Campaign");
         Mainstage.setScene(scene);
         Mainstage.setResizable(false);
@@ -145,7 +156,7 @@ public class Main extends Application {
 
             });
 
-            //changes to menu1 
+            //changes to menu1
             MenuButton btnOptions = new MenuButton("OPTIONS");
             btnOptions.setOnMouseClicked(event ->
             {
@@ -216,10 +227,10 @@ public class Main extends Application {
     }
     //the buttons
     private static class MenuButton extends StackPane {
-        
+
         private final Text text;
 
-    
+
         public MenuButton(String name) {
             //sets the button name as the perimeter, sets the font, and adds the rectangle for the button
             text = new Text(name);
@@ -256,7 +267,7 @@ public class Main extends Application {
                 text.setFill(Color.WHITE);
             });
 
-            //create a glow effect for the buttons 
+            //create a glow effect for the buttons
             DropShadow drop = new DropShadow(50, Color.WHITE);
             drop.setInput(new Glow());
 
