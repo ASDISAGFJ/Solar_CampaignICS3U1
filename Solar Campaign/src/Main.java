@@ -2,9 +2,9 @@ import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
-import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.effect.DropShadow;
@@ -21,12 +21,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.io.File;
 
 
 public class Main extends Application {
 
     private GameMenu gameMenu; //sets up the gameMenu for the main class
+
+    private Platform[] platforms;
 
     @Override
     public void start(Stage Mainstage){
@@ -41,6 +42,8 @@ public class Main extends Application {
 
 
         gameMenu = new GameMenu();
+
+
 
         // this will be the Image for the menu, and the ImageView will change if the user is in the menu or not
         Image TitleScreen = new Image("Images/MenuBackground.gif");
@@ -60,14 +63,32 @@ public class Main extends Application {
                 if (!gameMenu.isVisible()){
                     background.setImage(Level1);
                     player.setVisible(true);
+                    for (Platform platform : platforms) {
+                        platform.setPlatformVisible(true);
+                    }
 
                 }else {
                     background.setImage(TitleScreen);
                     player.setVisible(false);
+                    for (Platform platform : platforms) {
+                        platform.setPlatformVisible(false);
+                    }
 
                 }
             }
         };
+        platforms = new Platform[3];
+        platforms[0] = new Platform(100, 100, 1000, 50);
+        platforms[1] = new Platform(200, 400, 50, 50);
+        platforms[2] = new Platform(300, 300, 50, 50);
+
+        for (Platform platform : platforms) {
+            System.out.println("X: " + platform.getX() + ", Y: " + platform.getY());
+        }
+       root.getChildren().addAll(platforms);
+
+
+
         setBackground.start();
 
         //sets up the key inputs, which includes the player movement, and the menu button
@@ -83,6 +104,7 @@ public class Main extends Application {
                 if (!gameMenu.isVisible()) {
                     //creates a fade transition and makes the players movement and visibily to none
                     FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
+
                     ft.setFromValue(0);
                     ft.setToValue(1);
                     player.stop();
@@ -103,14 +125,19 @@ public class Main extends Application {
         });
 
 
+
+
+
         //updates the player location
         AnimationTimer PlayerTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                player.update();
+                player.update(platforms);
             }
         };
         PlayerTimer.start();
+
+
 
         root.getChildren().add(player);
 
@@ -135,6 +162,7 @@ public class Main extends Application {
             menu0.setTranslateY(280);
             menu1.setTranslateX(40);
             menu1.setTranslateY(280);
+
 
 
             //offseet for different menus
