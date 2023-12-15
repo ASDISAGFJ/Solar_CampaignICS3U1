@@ -6,7 +6,7 @@ public class Player extends Rectangle {
 
     private double velocityX = 0;// the velocity in the x axis
     private double velocityY = 0;//the velocity in the y axis
-    private double speed = 1;//the rate of change for the player
+    private double speed = .5;//the rate of change for the player
     private double damping = 0.9; // Damping factor to reduce velocity over time
 
     private double storeX;//store the velocityX for the start method
@@ -66,27 +66,40 @@ public class Player extends Rectangle {
         }
     }
 
-    public void update(Platform[] gameBoard) {
-        // Update position based on velocity
+    public void update(Platform[] platforms) {
         double newX = getX() + velocityX;
         double newY = getY() + velocityY;
 
-        // Check if the new position collides with the GameBoard object
-        if (newX < gameBoard.getX() + gameBoard.getWidth() &&
-                newX + getWidth() > gameBoard.getX() &&
-                newY < gameBoard.getY() + gameBoard.getHeight() &&
-                newY + getHeight() > gameBoard.getY()) {
-            // Collision detected, adjust the player's position
-            if (velocityX > 0) {
-                newX = gameBoard.getX() - getWidth();
-            } else if (velocityX < 0) {
-                newX = gameBoard.getX() + gameBoard.getWidth();
+        // Check for collisions with each platform
+        for (Platform platform : platforms) {
+            if (newX < platform.getX() + platform.getWidth() &&
+                    newX + getWidth() > platform.getX() &&
+                    getY() < platform.getY() + platform.getHeight() &&
+                    getY() + getHeight() > platform.getY()) {
+                // Collision detected, adjust the player's position
+                if (velocityX > 0) {
+                    newX = platform.getX() - getWidth();
+                } else if (velocityX < 0) {
+                    newX = platform.getX() + platform.getWidth();
+                }
+
+                // Reset velocity in x-axis to prevent further movement in that direction
+                velocityX = 0;
             }
 
-            if (velocityY > 0) {
-                newY = gameBoard.getY() - getHeight();
-            } else if (velocityY < 0) {
-                newY = gameBoard.getY() + gameBoard.getHeight();
+            if (getX() < platform.getX() + platform.getWidth() &&
+                    getX() + getWidth() > platform.getX() &&
+                    newY < platform.getY() + platform.getHeight() &&
+                    newY + getHeight() > platform.getY()) {
+                // Collision detected, adjust the player's position
+                if (velocityY > 0) {
+                    newY = platform.getY() - getHeight();
+                } else if (velocityY < 0) {
+                    newY = platform.getY() + platform.getHeight();
+                }
+
+                // Reset velocity in y-axis to prevent further movement in that direction
+                velocityY = 0;
             }
         }
 
