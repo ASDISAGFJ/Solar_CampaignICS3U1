@@ -9,7 +9,7 @@ public class Player extends Rectangle {
     private double velocityX = 0;// the velocity in the x axis
     private double velocityY = 0;//the velocity in the y axis
     private double speedX = 7;//the run speed
-    private double speedY = 0.65;//the jump speed
+    private double speedY = 0.4;//the jump speed
     private double damping = 0.45; // Damping factor to reduce velocity over time
 
     private double storeX;//store the velocityX for the start method
@@ -38,6 +38,7 @@ public class Player extends Rectangle {
     //the player movement gradually increases, and decreases after pressing the opposite button, e.g: D accelerates the
     // player to the right, and A decelerates until it starts accelerating left
     //moves the character based on velocity
+    //the normal jump (W) is more of a hover in this game, and the S key is the same, but it slows down the fall and decreases gravity
     public void handleKeyPress(KeyCode keyCode) {
         switch (keyCode) {
             case W:
@@ -90,7 +91,7 @@ public class Player extends Rectangle {
     }
 
     /**
-    * Platform[] platforms the rectangle used as the platform
+    * @param platforms the rectangle used as the platform
     *
     **/
     public void update(Platform[] platforms) {
@@ -148,13 +149,12 @@ public class Player extends Rectangle {
             setY(newY);
         }
 
-        //works as friction, slows down the players somewhat realistically
+        //works as friction, slows down(and stops) the players somewhat realistically
         if(velocityX > 0){
             velocityX -= 0.05;
-        }else{
-                velocityX += 0.05;}
-
-    }
+          }else{
+            velocityX += 0.05;}
+        }
 
 
 
