@@ -21,7 +21,7 @@ public class Player extends Rectangle {
 
 
     Bullet bullet;
-    private long lastSuperJumpTime; // Time of the last super jump
+    private long SuperJumpTime; // Time of the  super jump
     private long superJumpCooldown = 2000000000L; // Cooldown time in nanoseconds (2 seconds)
 
     private double minX = 0; // Minimum X-coordinate for the game border
@@ -37,7 +37,6 @@ public class Player extends Rectangle {
 
     //the player movement gradually increases, and decreases after pressing the opposite button, e.g: D accelerates the
     // player to the right, and A decelerates until it starts accelerating left
-
     //moves the character based on velocity
     public void handleKeyPress(KeyCode keyCode) {
         switch (keyCode) {
@@ -58,10 +57,11 @@ public class Player extends Rectangle {
                 break;
             case Q:
                 // Check if enough time has passed since the last super jump
+                // ADD a visual for the super jumps cd later
                 long currentTime = System.nanoTime();
-                if (currentTime - lastSuperJumpTime > superJumpCooldown) {
+                if (currentTime - SuperJumpTime > superJumpCooldown) {
                     velocityY -= speedY + 6;
-                    lastSuperJumpTime = currentTime;
+                    SuperJumpTime = currentTime;
                 }
                 break;
             default:
@@ -89,7 +89,12 @@ public class Player extends Rectangle {
         }
     }
 
+    /**
+    * Platform[] platforms the rectangle used as the platform
+    *
+    **/
     public void update(Platform[] platforms) {
+        //applies velocity and gets the rectangle players location
         double newX = getX() + velocityX;
         double newY = getY() + velocityY;
 
@@ -99,6 +104,8 @@ public class Player extends Rectangle {
 
         // Check for collisions with each platform
         for (Platform platform : platforms) {
+            // I didn't use .getbounsInLocal because it caused an error, and I don't want to change it back to BoundsinLocal since the code works fine
+            //checks if the player is touching a platform
             if (newX < platform.getX() + platform.getWidth() &&
                     newX + getWidth() > platform.getX() &&
                     getY() < platform.getY() + platform.getHeight() &&
@@ -115,6 +122,7 @@ public class Player extends Rectangle {
 
             }
 
+            //same logic as the previous one
             if (getX() < platform.getX() + platform.getWidth() &&
                     getX() + getWidth() > platform.getX() &&
                     newY < platform.getY() + platform.getHeight() &&
@@ -136,11 +144,11 @@ public class Player extends Rectangle {
         if (newX >= minX && newX <= maxX - getWidth()) {
             setX(newX);
         }
-
         if (newY >= minY && newY <= maxY - getHeight()) {
             setY(newY);
         }
 
+        //works as friction, slows down the players somewhat realistically
         if(velocityX > 0){
             velocityX -= 0.05;
         }else{
