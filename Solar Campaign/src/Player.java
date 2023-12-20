@@ -1,309 +1,166 @@
 import javafx.animation.AnimationTimer;
-import javafx.animation.FadeTransition;
-import javafx.animation.TranslateTransition;
-import javafx.application.Application;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.GaussianBlur;
-import javafx.scene.effect.Glow;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.util.Duration;
+
+public class Player extends Rectangle {
+
+    private double velocityX = 0;// the velocity in the x axis
+    private double velocityY = 0;//the velocity in the y axis
+    private double speedX = 7;//the run speed
+    private double speedY = 0.65;//the jump speed
+    private double damping = 0.45; // Damping factor to reduce velocity over time
+
+    private double storeX;//store the velocityX for the start method
+
+    private double storeY;//store the velocityY for the start method
+
+    private double gravity = 0.1;//gravity which constantly brings the playerY down
 
 
 
-public class Main extends Application {
+    Bullet bullet;
+    private long lastSuperJumpTime; // Time of the last super jump
+    private long superJumpCooldown = 2000000000L; // Cooldown time in nanoseconds (2 seconds)
 
-    private GameMenu gameMenu; //sets up the gameMenu for the main class
+    private double minX = 0; // Minimum X-coordinate for the game border
+    private double minY = 0; // Minimum Y-coordinate for the game border
+    private double maxX = 1200; // Maximum X-coordinate for the game border
+    private double maxY = 600; // Maximum Y-coordinate for the game border
 
-    private Platform[] platforms;
+    //gives the player a size, colour, and location
+    public Player() {
+        super(200, 200, 50, 50);
+        setFill(Color.BLUE);
+    }
 
-    @Override
-    public void start(Stage Mainstage){
-        Group root = new Group();
-        Scene scene = new Scene(root, 1200, 600);
+    //the player movement gradually increases, and decreases after pressing the opposite button, e.g: D accelerates the
+    // player to the right, and A decelerates until it starts accelerating left
 
-        Player  player= new Player();//sets up the player to be used
-        player.setVisible(false);
-        player.stop();
-
-
-
-
-        gameMenu = new GameMenu();
-
-
-
-        // this will be the Image for the menu, and the ImageView will change if the user is in the menu or not
-        Image TitleScreen = new Image("Images/MenuBackground.gif");
-        ImageView background = new ImageView(TitleScreen);
-        background.setX(0); background.setY(0);
-        background.setFitWidth(1200); background.setFitHeight(600);
-
-        Image Level1 = new Image("Images/Level1.gif");// the background for the first level
-
-        //adds the player and the background, the player is added later to overlap the background
-        root.getChildren().addAll(background, gameMenu);
-
-        //changes the background, the player.setVisible makes the player overlap with the level
-        AnimationTimer setBackground = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (!gameMenu.isVisible()){
-                    background.setImage(Level1);
-                    player.setVisible(true);
-                    for (Platform platform : platforms) {
-                        platform.setPlatformVisible(true);
-                    }
-
-                }else {
-                    background.setImage(TitleScreen);
-                    player.setVisible(false);
-                    for (Platform platform : platforms) {
-                        platform.setPlatformVisible(false);
-                    }
-
+    //moves the character based on velocity
+    public void handleKeyPress(KeyCode keyCode) {
+        switch (keyCode) {
+            case W:
+                velocityY -= speedY;
+                break;
+            case S:
+                velocityY +=  speedY;
+                break;
+            case A:
+                velocityX -= speedX;
+                break;
+            case D:
+                velocityX += speedX;
+                break;
+            case E:
+                new Bullet(getX(), getY(), 2, Color.RED);
+                break;
+            case Q:
+                // Check if enough time has passed since the last super jump
+                long currentTime = System.nanoTime();
+                if (currentTime - lastSuperJumpTime > superJumpCooldown) {
+                    velocityY -= speedY + 6;
+                    lastSuperJumpTime = currentTime;
                 }
-            }
-        };
-        platforms = new Platform[3];
-        platforms[0] = new Platform(100, 500, 1000, 50);
-        platforms[1] = new Platform(200, 400, 200, 50);
-        platforms[2] = new Platform(300, 300, 200, 50);
+                break;
+            default:
+                break;
+        }
+    }
 
+
+
+
+
+    //slows down when the mouse is released
+    public void handleKeyRelease(KeyCode keyCode) {
+        switch (keyCode) {
+            case W:
+            case S:
+                velocityY *= damping;
+                break;
+            case A:
+            case D:
+                velocityX *= damping;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void update(Platform[] platforms) {
+        double newX = getX() + velocityX;
+        double newY = getY() + velocityY;
+
+        // Apply gravity
+        velocityY += gravity;
+
+
+        // Check for collisions with each platform
         for (Platform platform : platforms) {
-            System.out.println("X: " + platform.getX() + ", Y: " + platform.getY());
-        }
-       root.getChildren().addAll(platforms);
-
-
-
-        setBackground.start();
-
-        //sets up the key inputs, which includes the player movement, and the menu button
-        scene.setOnKeyPressed(keyEvent -> {
-            KeyCode keyCode = keyEvent.getCode();
-
-            //player movement
-            player.handleKeyPress(keyCode);
-            player.handleKeyRelease(keyCode);
-
-            //Menu button
-            if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                if (!gameMenu.isVisible()) {
-                    //creates a fade transition and makes the players movement and visibily to none
-                    FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
-
-                    ft.setFromValue(0);
-                    ft.setToValue(1);
-                    player.stop();
-                    player.setVisible(false);
-                    gameMenu.setVisible(true);
-
-                    ft.play();
-                } else {
-                    FadeTransition ft = new FadeTransition(Duration.seconds(0.5), gameMenu);
-                    ft.setFromValue(0);
-                    ft.setToValue(1);
-                    player.start();
-                    gameMenu.setVisible(false);
-                    player.setVisible(true);
-                    ft.play();
+            if (newX < platform.getX() + platform.getWidth() &&
+                    newX + getWidth() > platform.getX() &&
+                    getY() < platform.getY() + platform.getHeight() &&
+                    getY() + getHeight() > platform.getY()) {
+                // Collision detected, adjust the player's position
+                if (velocityX > 0) {
+                    newX = platform.getX() - getWidth();
+                } else if (velocityX < 0) {
+                    newX = platform.getX() + platform.getWidth();
                 }
+
+                // Reset velocity in x-axis to prevent further movement in that direction
+                velocityX = 0;
+
             }
-        });
 
+            if (getX() < platform.getX() + platform.getWidth() &&
+                    getX() + getWidth() > platform.getX() &&
+                    newY < platform.getY() + platform.getHeight() &&
+                    newY + getHeight() > platform.getY()) {
+                // Collision detected, adjust the player's position
+                if (velocityY > 0) {
+                    newY = platform.getY() - getHeight();
+                } else if (velocityY < 0) {
+                    newY = platform.getY() + platform.getHeight();
+                }
 
+                // Reset velocity in y-axis to prevent further movement in that direction
+                velocityY = 0;
 
-
-
-        //updates the player location
-        AnimationTimer PlayerTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                player.update(platforms);
             }
-        };
-        PlayerTimer.start();
-
-
-
-        root.getChildren().add(player);
-
-        Mainstage.setTitle("Solar Campaign");
-        Mainstage.setScene(scene);
-        Mainstage.setResizable(false);
-        Mainstage.show();
-
-
-    }
-    public static class GameMenu extends Parent {
-
-        public GameMenu() {
-            //resizes every new objects horizontally
-            HBox menu0 = new HBox(100);
-            HBox menu1 = new HBox(100);
-
-
-
-            //the default location for the first object
-            menu0.setTranslateX(40);
-            menu0.setTranslateY(280);
-            menu1.setTranslateX(40);
-            menu1.setTranslateY(280);
-
-
-
-            //offseet for different menus
-            final int offset = 800;
-            menu1.setTranslateX(offset);
-
-
-
-            //the start button, sets the menu to be invisible
-            MenuButton btnResume = new MenuButton("START");
-            btnResume.setOnMouseClicked(event ->
-            {
-                FadeTransition ft = new FadeTransition(Duration.seconds(0.5), this);
-                ft.setFromValue(1);
-                ft.setToValue(0);
-                ft.setOnFinished(evt -> setVisible(false));
-                ft.play();
-
-
-            });
-
-            //changes to menu1
-            MenuButton btnOptions = new MenuButton("OPTIONS");
-            btnOptions.setOnMouseClicked(event ->
-            {
-                getChildren().addAll(menu1);
-                TranslateTransition tt = new TranslateTransition(Duration.seconds(0.25), menu0);
-                tt.setToX(menu0.getTranslateX() - offset);
-                TranslateTransition tt1 = new TranslateTransition(Duration.seconds(0.5), menu1);
-                tt1.setToX(menu0.getTranslateX());
-                tt.play();
-                tt1.play();
-
-
-                tt.setOnFinished(evt -> getChildren().remove(menu0));
-            });
-
-            //exits the program
-            MenuButton btnExit = new MenuButton("EXIT");
-            btnExit.setOnMouseClicked(event ->
-                    System.exit(0));
-
-
-            //changes to menu0
-            MenuButton btnBack = new MenuButton("BACK");
-            btnBack.setOnMouseClicked(event ->
-            {
-                getChildren().add(menu0);
-                TranslateTransition tt = new TranslateTransition(Duration.seconds(0.25), menu1);
-                tt.setToX(menu1.getTranslateX() + offset);
-
-
-                TranslateTransition tt1 = new TranslateTransition(Duration.seconds(0.5), menu0);
-                tt1.setToX(menu1.getTranslateX());
-
-
-                tt.play();
-                tt1.play();
-
-
-                tt.setOnFinished(evt -> getChildren().remove(menu1));
-
-
-            });
-
-
-            //TBA
-            MenuButton btnScaling = new MenuButton("SCALING");
-
-
-            //TBA
-            MenuButton btnSpecials = new MenuButton("SPECIALS");
-
-
-
-
-            //adds the buttons to their percpective menu
-            menu0.getChildren().addAll(btnResume, btnOptions, btnExit);
-            menu1.getChildren().addAll(btnBack, btnScaling, btnSpecials);
-
-
-            //background hue
-            Rectangle bg = new Rectangle(1200, 900);
-            bg.setFill(Color.PURPLE);
-            bg.setOpacity(0.3);
-            getChildren().addAll(bg, menu0);
-
-
-        }
-    }
-    //the buttons
-    private static class MenuButton extends StackPane {
-
-        private final Text text;
-
-
-        public MenuButton(String name) {
-            //sets the button name as the perimeter, sets the font, and adds the rectangle for the button
-            text = new Text(name);
-            text.setFont(text.getFont().font(60));
-            Rectangle bg = new Rectangle(300, 100);
-            bg.setOpacity(0.6);
-            bg.setFill(Color.PURPLE);
-
-
-            //creates a blur effect, makes the text colour white, slight rotate, and adds the text
-            bg.setEffect(new GaussianBlur(3.5));
-            text.setFill(Color.WHITE);
-            setRotate(-0.5);
-            this.setAlignment(Pos.TOP_LEFT);
-            getChildren().addAll(bg, text);
-
-
-            //changes the button when mouse enters
-            setOnMouseEntered(event ->
-            {
-                bg.setTranslateX(10);
-                text.setTranslateX(10);
-                text.setFill(Color.PURPLE);
-                bg.setFill(Color.WHITE);
-            });
-
-
-            //changes back after exiting
-            setOnMouseExited(event ->
-            {
-                bg.setTranslateX(0);
-                text.setTranslateX(0);
-                bg.setFill(Color.PURPLE);
-                text.setFill(Color.WHITE);
-            });
-
-            //create a glow effect for the buttons
-            DropShadow drop = new DropShadow(50, Color.WHITE);
-            drop.setInput(new Glow());
-
-            //makes it so that the glow only happens when the mouse is on the button
-            setOnMousePressed(event -> setEffect(drop));
-            setOnMouseReleased(event -> setEffect(null));
         }
 
+        // Check if the new position is within the game border
+        if (newX >= minX && newX <= maxX - getWidth()) {
+            setX(newX);
+        }
+
+        if (newY >= minY && newY <= maxY - getHeight()) {
+            setY(newY);
+        }
+
+        if(velocityX > 0){
+            velocityX -= 0.05;
+        }else{
+                velocityX += 0.05;}
+
     }
 
+
+
+    //stops any movement and stores the lost velocity in the store variables
+    public void stop(){
+        storeX = velocityX;
+        storeY = velocityY;
+        velocityX = 0;
+        velocityY = 0;
+    }
+
+    //starts movement by adding the velocity in store to the velocity variable
+    public void start(){
+        velocityX = storeX;
+        velocityY = storeY;
+    }
 }
