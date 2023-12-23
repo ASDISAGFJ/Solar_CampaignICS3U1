@@ -3,7 +3,13 @@ import javafx.scene.Group;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-
+/**
+*
+* the player rectangle
+*
+*author: Abiru
+*
+**/
 public class Player extends Rectangle {
 
     private double velocityX = 0;// the velocity in the x axis
