@@ -13,6 +13,7 @@ import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -29,7 +30,12 @@ public class Main extends Application {
 
     private Platform[] platforms;
 
-    Bullet bullet;
+    // Added player instances
+    private Player player;
+    private Player player2;
+
+    private int Level = 1;
+
 
 
     @Override
@@ -37,14 +43,19 @@ public class Main extends Application {
         Group root = new Group();
         Scene scene = new Scene(root, 1200, 600);
 
-        Player  player= new Player();//sets up the player to be used
+        player = new Player();
+        player2 = new Player();
+
         player.setVisible(false);
         player.stop();
 
+        player2.setVisible(false);
+        player2.stop();
 
 
 
         gameMenu = new GameMenu();
+        player2.setFill(Color.RED);
 
 
 
@@ -54,7 +65,12 @@ public class Main extends Application {
         background.setX(0); background.setY(0);
         background.setFitWidth(1200); background.setFitHeight(600);
 
-        Image Level1 = new Image("Images/Level1.gif");// the background for the first level
+        Image Level1 = new Image("Images/amazon.jpg");// the background for the first level
+        Image Level2 = new Image("Images/amazon.jpg");// the background for the second level
+        Image Level3 = new Image("Images/amazon.jpg");// the background for the third level
+        Image Level4 = new Image("Images/amazon.jpg");// the background for the fourth level
+
+        
 
         //adds the player and the background, the player is added later to overlap the background
         root.getChildren().addAll(background, gameMenu);
@@ -64,15 +80,34 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 if (!gameMenu.isVisible()){
-                    background.setImage(Level1);
+                    Switch(Level){
+                        case 1: 
+                            background.setImage(level1);
+                            break;
+                        case 2:
+                            background.setImage(level2);
+                            break;
+                        case 3:
+                            background.setImage(level3);
+                            break;
+                        case 4:
+                            background.setImage(level4);
+                            break;
+                        default:
+                            throw new Exception("This ain't a level");
+                            break;
+                    }
                     player.setVisible(true);
+                    player2.setVisible(true);
                     for (Platform platform : platforms) {
                         platform.setPlatformVisible(true);
                     }
 
                 }else {
+                    setBackground.stop();
                     background.setImage(TitleScreen);
                     player.setVisible(false);
+                    player2.setVisible(false);
                     for (Platform platform : platforms) {
                         platform.setPlatformVisible(false);
                     }
@@ -80,10 +115,7 @@ public class Main extends Application {
                 }
             }
         };
-        platforms = new Platform[3];
-        platforms[0] = new Platform(100, 500, 1000, 50);
-        platforms[1] = new Platform(200, 400, 200, 50);
-        platforms[2] = new Platform(300, 300, 200, 50);
+        platforms = new Platform[5];
 
         for (Platform platform : platforms) {
             System.out.println("X: " + platform.getX() + ", Y: " + platform.getY());
@@ -94,13 +126,17 @@ public class Main extends Application {
 
         setBackground.start();
 
+
         //sets up the key inputs, which includes the player movement, and the menu button
         scene.setOnKeyPressed(keyEvent -> {
             KeyCode keyCode = keyEvent.getCode();
 
-            //player movement
-            player.handleKeyPress(keyCode);
-            player.handleKeyRelease(keyCode);
+            // Player 1 controls
+            player.handleKeyPress(keyCode, root);
+
+            // Player 2 controls
+            player2.handleKeyPress2(keyCode, root);
+
 
             //Menu button
             if (keyEvent.getCode() == KeyCode.ESCAPE) {
@@ -112,6 +148,8 @@ public class Main extends Application {
                     ft.setToValue(1);
                     player.stop();
                     player.setVisible(false);
+                    player2.stop();
+                    player2.setVisible(false);
                     gameMenu.setVisible(true);
 
                     ft.play();
@@ -120,12 +158,20 @@ public class Main extends Application {
                     ft.setFromValue(0);
                     ft.setToValue(1);
                     player.start();
+                    player2.start();
                     gameMenu.setVisible(false);
                     player.setVisible(true);
+                    player2.setVisible(true);
                     ft.play();
                 }
             }
         });
+        scene.setOnKeyReleased(KeyEvent -> {
+            KeyCode keyCode = KeyEvent.getCode();
+            player.handleKeyRelease(keyCode);
+            player2.handleKeyRelease2(keyCode);
+        });
+
 
 
 
@@ -135,13 +181,18 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 player.update(platforms);
+                player2.update(platforms);
+                player.bulletTouched(player, player2);
+                player2.bulletTouched(player, player2);
+                player.GameOver();
+                player2.GameOver();
             }
         };
         PlayerTimer.start();
 
 
 
-        root.getChildren().add(player);
+        root.getChildren().addAll(player, player2);
 
         Mainstage.setTitle("Solar Campaign");
         Mainstage.setScene(scene);
@@ -156,20 +207,24 @@ public class Main extends Application {
             //resizes every new objects horizontally
             HBox menu0 = new HBox(100);
             HBox menu1 = new HBox(100);
+            HBox map = new HBox(20);
 
 
 
             //the default location for the first object
             menu0.setTranslateX(40);
-            menu0.setTranslateY(280);
+            menu0.setTranslateY(100);
             menu1.setTranslateX(40);
-            menu1.setTranslateY(280);
+            menu1.setTranslateY(200);
+            map.setTranslateX(40);
+            map.setTranslateY(300);
 
 
 
             //offseet for different menus
             final int offset = 800;
             menu1.setTranslateX(offset);
+            map.setTranslateX(offset);
 
 
 
@@ -232,18 +287,50 @@ public class Main extends Application {
 
 
             //TBA
-            MenuButton btnScaling = new MenuButton("SCALING");
+            MenuButton btnMap = new MenuButton("MAPS");
+            btnMap.setOnMouseClicked(event -> {
+                getChildren().addAll(map);
+                TranslateTransition tt = new TranslateTransition(Duration.seconds(0.25), map);
+                tt.setToX(menu1.getTranslateX() - offset);
+                TranslateTransition tt1 = new TranslateTransition(Duration.seconds(0.5), map);
+                tt1.setToX(menu1.getTranslateX());
+                tt.play();
+                tt1.play();
+
+
+                tt.setOnFinished(evt -> getChildren().remove(menu1));
+                    }
+
+            );
+            MenuButton btnBack2 = new MenuButton("BACK");
+            btnBack2.setOnMouseClicked(event -> {
+                getChildren().add(menu1);
+                TranslateTransition tt = new TranslateTransition(Duration.seconds(0.25), map);
+                tt.setToX(map.getTranslateX() + offset);
+
+                TranslateTransition tt1 = new TranslateTransition(Duration.seconds(0.5), menu1);
+                tt1.setToX(map.getTranslateX());
+
+                tt.play();
+                tt1.play();
+
+                tt.setOnFinished(evt -> getChildren().remove(map));
+            });
+
 
 
             //TBA
-            MenuButton btnSpecials = new MenuButton("SPECIALS");
+            MenuButton btnSpecials = new MenuButton("N/A");
+
 
 
 
 
             //adds the buttons to their percpective menu
             menu0.getChildren().addAll(btnResume, btnOptions, btnExit);
-            menu1.getChildren().addAll(btnBack, btnScaling, btnSpecials);
+            menu1.getChildren().addAll(btnBack, btnMap, btnSpecials);
+            map.getChildren().addAll(btnBack2);
+
 
 
             //background hue
@@ -255,6 +342,46 @@ public class Main extends Application {
 
         }
     }
+
+    // Method to create an image button
+    private static StackPane createMapButton(String imageUrl) {
+        Image image = new Image(imageUrl);
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(100);
+
+        Rectangle bg = new Rectangle(300, 100);
+        bg.setOpacity(0.6);
+        bg.setFill(Color.PURPLE);
+        bg.setEffect(new GaussianBlur(3.5));
+
+        DropShadow drop = new DropShadow(50, Color.WHITE);
+        drop.setInput(new Glow());
+
+        imageView.setEffect(null);
+        bg.setFill(Color.PURPLE);
+
+        imageView.setOnMouseEntered(event -> {
+            bg.setTranslateX(10);
+            imageView.setTranslateX(10);
+            imageView.setEffect(drop);
+            bg.setFill(Color.WHITE);
+        });
+
+        imageView.setOnMouseExited(event -> {
+            bg.setTranslateX(0);
+            imageView.setTranslateX(0);
+            imageView.setEffect(null);
+            bg.setFill(Color.PURPLE);
+        });
+
+        imageView.setOnMousePressed(event -> imageView.setEffect(drop));
+        imageView.setOnMouseReleased(event -> imageView.setEffect(null));
+
+        StackPane buttonPane = new StackPane(bg, imageView);
+
+        return buttonPane;
+    }
+
     //the buttons
     private static class MenuButton extends StackPane {
 
