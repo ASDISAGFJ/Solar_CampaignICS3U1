@@ -97,6 +97,9 @@ public class Main extends Application {
                             throw new Exception("This ain't a level");
                             break;
                     }
+                    player.setTranslateY(-800);
+                    player2.setTranslateY(800);
+            
                     player.setVisible(true);
                     player2.setVisible(true);
                     for (Platform platform : platforms) {
@@ -104,6 +107,8 @@ public class Main extends Application {
                     }
 
                 }else {
+                    player.setTranslateY(800);
+                    player2.setTranslateY(-800);
                     setBackground.stop();
                     background.setImage(TitleScreen);
                     player.setVisible(false);
